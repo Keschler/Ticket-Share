@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle bid button clicks and show bid popup
     const handleBidButtonClick = (event) => {
         const ticketDiv = event.target.closest('.ticket');
-        const titleElement = ticketDiv.querySelector('#title');
         const currentBidElement = ticketDiv.querySelector('.current-bid');
+        const titleElement = ticketDiv.querySelector('#title');
         const popup = document.getElementById('bidPopup');
         const confirmBtn = document.getElementById('confirmBid');
         const cancelBtn = document.getElementById('cancelBid');
@@ -89,53 +89,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
         popup.style.display = 'block';
 
-        // Remove existing event listeners to avoid duplication
-        confirmBtn.onclick = null;
-        cancelBtn.onclick = null;
-
-        // Confirm bid logic
         confirmBtn.onclick = () => {
-            const newBid = parseFloat(bidAmountField.value.replace(',', '.'));
+            const currentBidText = currentBidElement.textContent.replace(/[^\d,.]/g, '').replace(',', '.');
+            const currentBidValue = parseFloat(currentBidText);
+            let newBid = parseFloat(bidAmountField.value.replace(',', '.'));
+
             const ticketsData = JSON.parse(localStorage.getItem('tickets')) || [];
-            const ticketObj = ticketsData.find((t) => t.eventName === titleElement.textContent);
+            const ticketObj = ticketsData.find(t => t.eventName === titleElement.textContent);
+            const originalStart = parseFloat(ticketObj.startingBid);
 
-            if (!ticketObj) {
-                alert("Ticket not found!");
+            const epsilon = 0.000001;
+            const isFirstBid = Math.abs(currentBidValue - originalStart) < epsilon;
+
+            if (isNaN(newBid) || (!isFirstBid && newBid <= currentBidValue) || (isFirstBid && newBid < currentBidValue)) {
+                alert(isFirstBid ?
+                      "Please enter a bid equal to or higher than the starting bid." :
+                      "Please enter a bid higher than the current bid.");
                 return;
             }
 
-            const currentBidValue = parseFloat(ticketObj.currentBid || ticketObj.startingBid);
-            const currencySymbol = ticketObj.startingBidCurrency;
-
-            if (isNaN(newBid) || newBid <= currentBidValue) {
-                alert(`Please enter a bid higher than the current bid (${currencySymbol}${currentBidValue.toFixed(2)}).`);
-                return;
-            }
-
-            // Update the ticket's current bid
-            ticketObj.currentBid = newBid;
+            let currencySymbol = currentBidElement.textContent.replace(/[0-9.,]/g, '').trim() || '$';
             currentBidElement.textContent = `${currencySymbol}${newBid.toFixed(2)}`;
 
-            // Save the updated tickets to localStorage
-            localStorage.setItem('tickets', JSON.stringify(ticketsData));
-
-            // Update the bid history
+            // Save bid to history
             const bidHistory = JSON.parse(localStorage.getItem('bidHistory')) || [];
-            bidHistory.push({
-                eventName: ticketObj.eventName,
-                bid: newBid,
-                user: localStorage.getItem('profileName') || 'Anonymous',
-                time: new Date().toLocaleString(),
-                currency: currencySymbol,
-            });
-            localStorage.setItem('bidHistory', JSON.stringify(bidHistory));
+            const userName = localStorage.getItem('profileName') || 'Anonymous';
+            const currentTime = new Date().toLocaleString();
 
-            // Close the popup and clear the input
+            if (titleElement) {
+                // Add to bid history
+                bidHistory.push({
+                    eventName: titleElement.textContent,
+                    bid: newBid,
+                    user: userName,
+                    time: currentTime,
+                    currency: currencySymbol
+                });
+                localStorage.setItem('bidHistory', JSON.stringify(bidHistory));
+
+                // Update ticket's current bid in localStorage
+                const ticketsData = JSON.parse(localStorage.getItem('tickets')) || [];
+                const ticketObj = ticketsData.find(t => t.eventName === titleElement.textContent);
+                if (ticketObj) {
+                    ticketObj.currentBid = newBid; // Update currentBid instead of startingBid
+                    ticketObj.startingBidCurrency = currencySymbol;
+                    localStorage.setItem('tickets', JSON.stringify(ticketsData));
+                }
+
+                // Update the ticket's current bid in the favorites list
+                let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+                const favoriteTicket = favorites.find(fav => fav.eventName === titleElement.textContent);
+                if (favoriteTicket) {
+                    favoriteTicket.currentBid = newBid;
+                    favoriteTicket.startingBidCurrency = currencySymbol;
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                }
+            }
+
             popup.style.display = 'none';
             bidAmountField.value = '';
         };
 
-        // Cancel bid logic
         cancelBtn.onclick = () => {
             popup.style.display = 'none';
             bidAmountField.value = '';
