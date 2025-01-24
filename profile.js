@@ -201,6 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     ticketObj.startingBidCurrency = currencySymbol;
                     localStorage.setItem('tickets', JSON.stringify(ticketsData));
                 }
+
+                // Update the ticket's current bid in the favorites list
+                let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+                const favoriteTicket = favorites.find(fav => fav.eventName === titleElement.textContent);
+                if (favoriteTicket) {
+                    favoriteTicket.currentBid = newBid;
+                    favoriteTicket.startingBidCurrency = currencySymbol;
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                }
             }
 
             popup.style.display = 'none';
