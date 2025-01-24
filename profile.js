@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="auction">
                 ${ticket.saleType?.includes('Auction') ? 
                     `<p class="current-bid">
-                        ${ticket.startingBidCurrency}${ticket.startingBid}
+                        ${ticket.startingBidCurrency}${ticket.currentBid || ticket.startingBid}
                     </p>` : ''
                 }
                 ${ticket.saleType?.includes('Buy It Now') ?
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ticketsData = JSON.parse(localStorage.getItem('tickets')) || [];
                 const ticketObj = ticketsData.find(t => t.eventName === titleElement.textContent);
                 if (ticketObj) {
-                    ticketObj.startingBid = newBid; // Update startingBid instead of price
+                    ticketObj.currentBid = newBid; // Update currentBid instead of startingBid
                     ticketObj.startingBidCurrency = currencySymbol;
                     localStorage.setItem('tickets', JSON.stringify(ticketsData));
                 }
