@@ -80,12 +80,7 @@ include_once('index.html');
 // Add JavaScript to inject tickets data from PHP
 echo "<script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Clear any existing tickets from localStorage
-        // localStorage.removeItem('tickets');
-        
-        // Inject PHP tickets data
         const ticketsFromServer = $ticketsJson;
-        console.log('Tickets from server:', ticketsFromServer);
         
         // Handle case where get-tickets.php is failing
         if (ticketsFromServer && ticketsFromServer.length > 0) {
@@ -108,11 +103,8 @@ echo "<script>
                 // Fallback if createTicketElement isn't defined yet
                 setTimeout(() => {
                     window.ticketsFromPHP = ticketsFromServer;
-                    console.log('Set window.ticketsFromPHP for later use');
                 }, 500);
             }
-        } else {
-            console.log('No tickets found in database or error occurred. Total tickets: $ticketCount');
         }
     });
 </script>";
