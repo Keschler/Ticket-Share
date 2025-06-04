@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wallet - Ticket Share</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .wallet-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .wallet-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .wallet-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .balance-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .balance-label {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .action-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .deposit-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .deposit-btn:hover {
+            background: linear-gradient(135deg, #218838, #1aa085);
+            transform: translateY(-2px);
+        }
+
+        .withdraw-btn {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+        .withdraw-btn:hover {
+            background: linear-gradient(135deg, #c82333, #e8650e);
+            transform: translateY(-2px);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .thresholds {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .thresholds h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .threshold-list {
+            list-style: none;
+            color: #666;
+        }
+
+        .threshold-list li {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .wallet-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .balance-amount {
+                font-size: 2rem;
+            }
+            
+            .wallet-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">TS</div>
+            <div class="logo-text">Ticket Share</div>
+        </a>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Home</a>
+            <a href="favourites.php" class="nav-btn">Favorites</a>
+            <a href="wallet.html" class="nav-btn">Wallet</a>
+            <a href="profile/profile.html" class="nav-btn">Profile</a>
+            <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
+            <a href="#" class="nav-btn" id="authBtn">Login / Register</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <h1 class="wallet-title">My Wallet</h1>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <div class="balance-display">
+                <div class="balance-label">Current Balance</div>
+                <div class="balance-amount" id="balanceAmount">$0.00</div>
+            </div>
+
+            <div class="wallet-actions">
+                <div class="action-card">
+                    <h3 class="action-title">💰 Add Money</h3>
+                    <div class="input-group">
+                        <label for="depositAmount">Amount to Deposit</label>
+                        <input type="number" id="depositAmount" placeholder="Enter amount" min="0.01" max="1000" step="0.01">
+                    </div>
+                    <button class="action-btn deposit-btn" onclick="addMoney()">Add Money</button>
+                </div>
+
+                <div class="action-card">
+                    <h3 class="action-title">💸 Withdraw Money</h3>
+                    <div class="input-group">
+                        <label for="withdrawAmount">Amount to Withdraw</label>
+                        <input type="number" id="withdrawAmount" placeholder="Enter amount" min="1" step="0.01">
+                    </div>
+                    <button class="action-btn withdraw-btn" onclick="withdrawMoney()">Withdraw Money</button>
+                </div>
+            </div>
+
+            <div class="thresholds">
+                <h3>💡 Important Information</h3>
+                <ul class="threshold-list">
+                    <li>Maximum deposit per transaction: $1,000</li>
+                    <li>Minimum withdrawal amount: $1.00</li>
+                    <li>Your wallet balance is used for ticket purchases</li>
+                    <li>All transactions are secure and encrypted</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Check if user is logged in using session-based auth
+        async function checkAuth() {
+            const { isLoggedIn } = await checkAuthStatus();
+            if (!isLoggedIn) {
+                alert('Please log in to access your wallet');
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Update login/register button
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateAuthUI();
+        });
+
+        // Load user balance
+        async function loadBalance() {
+            if (!await checkAuth()) return;
+            try {
+                const response = await fetch(`backend/manage-balance.php`, {
+                    credentials: 'include'
+                });
+                
+                console.log('Balance response status:', response.status);
+                console.log('Balance response headers:', response.headers);
+                
+                // Check if response is actually JSON
+                const contentType = response.headers.get('content-type');
+                console.log('Content-Type:', contentType);
+                
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('Raw response:', responseText);
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON Parse Error:', parseError);
+                    throw new Error('Server returned invalid JSON: ' + parseError.message);
+                }
+                
+                console.log('Balance response data:', data);
+                
+                if (data.success) {
+                    document.getElementById('balanceAmount').textContent = `$${data.balance}`;
+                } else {
+                    console.error('Backend balance error:', data.message);
+                    console.error('Error details:', data.error_details);
+                    
+                    let errorMessage = 'Failed to load balance: ' + data.message;
+                    if (data.error_details) {
+                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    }
+                    showMessage(errorMessage, 'error');
+                }
+            } catch (error) {
+                console.error('Network/Parse error loading balance:', error);
+                console.error('Error stack:', error.stack);
+                showMessage('Failed to load balance. Error: ' + error.message, 'error');
+            }
+        }
+
+        // Add money to wallet
+        async function addMoney() {
+            if (!await checkAuth()) return;
+            const amount = document.getElementById('depositAmount').value;
+            if (!amount || amount <= 0) {
+                showMessage('Please enter a valid amount', 'error');
+                return;
+            }
+            if (amount > 1000) {
+                showMessage('Maximum deposit amount is $1,000 per transaction', 'error');
+                return;
+            }
+            setLoading(true);
+            try {
+                const response = await fetch('backend/manage-balance.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        amount: parseFloat(amount),
+                        csrf_token: localStorage.getItem('csrf_token')
+                    })
+                });
+                
+                console.log('Add money response status:', response.status);
+                
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('Add money raw response:', responseText);
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON Parse Error:', parseError);
+                    throw new Error('Server returned invalid JSON: ' + parseError.message);
+                }
+                
+                console.log('Add money response data:', data);
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('balanceAmount').textContent = `$${data.newBalance}`;
+                    document.getElementById('depositAmount').value = '';
+                } else {
+                    console.error('Backend error:', data.message);
+                    console.error('Error details:', data.error_details);
+                    
+                    let errorMessage = data.message;
+                    if (data.error_details) {
+                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    }
+                    showMessage(errorMessage, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding money:', error);
+                console.error('Error stack:', error.stack);
+                showMessage('Failed to add money. Error: ' + error.message, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Withdraw money from wallet
+        async function withdrawMoney() {
+            if (!await checkAuth()) return;
+            const amount = document.getElementById('withdrawAmount').value;
+            if (!amount || amount <= 0) {
+                showMessage('Please enter a valid amount', 'error');
+                return;
+            }
+            if (amount < 1) {
+                showMessage('Minimum withdrawal amount is $1.00', 'error');
+                return;
+            }
+            if (!confirm(`Are you sure you want to withdraw $${amount}?`)) {
+                return;
+            }
+            setLoading(true);
+            try {
+                const response = await fetch('backend/manage-balance.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        amount: parseFloat(amount),
+                        csrf_token: localStorage.getItem('csrf_token')
+                    })
+                });
+                
+                console.log('Withdraw money response status:', response.status);
+                
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('Withdraw money raw response:', responseText);
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON Parse Error:', parseError);
+                    throw new Error('Server returned invalid JSON: ' + parseError.message);
+                }
+                
+                console.log('Withdraw money response data:', data);
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('balanceAmount').textContent = `$${data.newBalance}`;
+                    document.getElementById('withdrawAmount').value = '';
+                } else {
+                    console.error('Backend error:', data.message);
+                    console.error('Error details:', data.error_details);
+                    
+                    let errorMessage = data.message;
+                    if (data.error_details) {
+                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    }
+                    showMessage(errorMessage, 'error');
+                }
+            } catch (error) {
+                console.error('Error withdrawing money:', error);
+                console.error('Error stack:', error.stack);
+                showMessage('Failed to withdraw money. Error: ' + error.message, 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Show message to user
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Set loading state
+        function setLoading(loading) {
+            const actionCards = document.querySelectorAll('.action-card');
+            actionCards.forEach(card => {
+                if (loading) {
+                    card.classList.add('loading');
+                } else {
+                    card.classList.remove('loading');
+                }
+            });
+        }
+
+        // Handle Enter key presses
+        document.getElementById('depositAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addMoney();
+            }
+        });
+
+        document.getElementById('withdrawAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                withdrawMoney();
+            }
+        });
+
+        // Load balance when page loads
+        window.addEventListener('load', loadBalance);
+    </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Ticket - Ticket Share</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group-price {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .form-group-price input {
+            flex: 1;
+        }
+
+        .currency-symbol {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            .form-title {
+                font-size: 2rem;
+            }
+
+            .nav-buttons {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">TS</div>
+            <div class="logo-text">Ticket Share</div>
+        </a>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Home</a>
+            <a href="favourites.php" class="nav-btn">Favorites</a>
+            <a href="wallet.html" class="nav-btn">Wallet</a>
+            <a href="profile/profile.html" class="nav-btn">Profile</a>
+            <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
+            <button class="nav-btn" id="login-register-btn">Login / Register</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1 class="form-title">🎫 Create New Ticket</h1>
+                <p class="form-subtitle">Fill in the details to list your ticket for sale</p>
+            </div>
+            <form id="ticketForm">
+                <div class="form-group">
+                    <label for="eventName">Event Name:</label>
+                    <input type="text" id="eventName" name="eventName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="time">Time:</label>
+                    <input type="time" id="time" name="time" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageURL">Image URL (optional):</label>
+                    <input type="url" id="imageURL" name="imageURL" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="form-group-price">
+                    <div class="form-group" style="flex: 0 0 60px;">
+                        <label for="currency">Currency:</label>
+                        <select id="currency" name="currency" required>
+                            <option value="$">$ USD</option>
+                            <option value="€">€ EUR</option>
+                            <option value="£">£ GBP</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" name="price" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="expiration">Expiration Date & Time:</label>
+                    <input type="datetime-local" id="expiration" name="expiration" required>
+                </div>
+
+                <button type="submit" class="btn">Create Ticket</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in using our auth.js
+            const { isLoggedIn, user } = await checkAuthStatus();
+            
+            // Only logged in users should be able to create tickets
+            if (!isLoggedIn) {
+                alert('Please log in to create a ticket.');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Update the login/register button
+            await updateAuthUI();
+
+            // Handle form submission
+            document.getElementById('ticketForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Double-check authentication before submission
+                const authStatus = await checkAuthStatus();
+                if (!authStatus.isLoggedIn) {
+                    alert('Your session has expired. Please log in again to create a ticket.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+            
+
+                const formData = new FormData(e.target);
+                const ticketData = {
+                    eventName: formData.get('eventName'),
+                    date: formData.get('date'),
+                    time: formData.get('time'),
+                    location: formData.get('location'),
+                    imageURL: formData.get('imageURL'),
+                    saleType: 'Buy It Now', // Fixed value since all tickets are instant buy
+                    currency: formData.get('currency'),
+                    price: formData.get('price'),
+                    expiration: formData.get('expiration'),
+                    csrf_token: localStorage.getItem('csrf_token') // Add CSRF token
+                    // Note: We don't include sellerID here since the server will get it from the session
+                };
+
+                try {
+                    const response = await fetch('backend/create-ticket.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include', // Important for sending cookies/session data
+                        body: JSON.stringify(ticketData)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Ticket created successfully!');
+                        e.target.reset();
+                        // Redirect to index page
+                        window.location.href = 'index.html';
+                    } else {
+                        alert('Error creating ticket: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the ticket.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
