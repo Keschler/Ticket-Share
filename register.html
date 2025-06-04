@@ -370,14 +370,6 @@
                     // Log what we're sending
                     console.log("Sending form data:", Object.fromEntries(formData));
                     
-                    // Try getting a simple file first to test server connection
-                    try {
-                        const testResponse = await fetch('backend/test-db.php');
-                        const testText = await testResponse.text();
-                        console.log("Server connection test:", testText);
-                    } catch (testError) {
-                        console.error("Server connection test failed:", testError);
-                    }
                     
                     // Send registration request
                     const response = await fetch('backend/register.php', {
