@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-header('Access-Control-Allow-Origin: http://localhost');
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Credentials: true');
@@ -53,22 +53,26 @@ try {
         // 3. Ticket-Details laden
         $favorites = [];
         if ($favIds) {
-            $idList = implode(',', array_map('intval', $favIds));      // bereits integer-geprüft
-            $idList = implode(',', array_map('intval', $favIds));
+            $idList = implode(',', array_map('intval', $favIds)); // bereits integer-geprüft
             $q = "
-              SELECT t.TicketID, t.TicketName AS eventName,
+              SELECT t.TicketID,
+                     t.TicketName AS eventName,
                      DATE_FORMAT(t.Date,'%Y-%m-%d') AS date,
-                     TIME_FORMAT(t.Time,'%H:%i')     AS time,
-                     t.Location  AS location,
-                     t.Price     AS price,
-                     t.ImageURL  AS image,
-                     u.Username  AS sellerName
+                     TIME_FORMAT(t.Time,'%H:%i') AS time,
+                     t.Location AS location,
+                     t.Price AS price,
+                     t.ImageURL AS image,
+                     u.Username AS sellerName
               FROM tickets t
               LEFT JOIN users u ON t.SellerID = u.ID
               WHERE t.TicketID IN ($idList)";
+
             $ticketRes = mysqli_query($conn, $q);
-            if ($ticketRes)
-                $favorites = mysqli_fetch_all($ticketRes, MYSQLI_ASSOC);
+            if ($ticketRes) {
+                while ($row = mysqli_fetch_assoc($ticketRes)) {
+                    $favorites[] = $row;
+                }
+            }
         }
 
         $response = [
