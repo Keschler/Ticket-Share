@@ -119,9 +119,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_bind_param($update_stmt, "ii", $buyer_id, $ticket_id);
             
             if (mysqli_stmt_execute($update_stmt)) {
+                // Log transactions for buyer and seller
+                $buyer_log  = "INSERT INTO transactions (UserID, Type, Amount, Details) VALUES (?, 'purchase', ?, ?)";
+                $seller_log = "INSERT INTO transactions (UserID, Type, Amount, Details) VALUES (?, 'sale', ?, ?)";
+
+                $ticketDetail = 'TicketID ' . $ticket_id;
+
+                $buyer_stmt = mysqli_prepare($conn, $buyer_log);
+                if ($buyer_stmt) {
+                    mysqli_stmt_bind_param($buyer_stmt, 'ids', $buyer_id, $ticket_price, $ticketDetail);
+                    mysqli_stmt_execute($buyer_stmt);
+                }
+
+                $seller_stmt = mysqli_prepare($conn, $seller_log);
+                if ($seller_stmt) {
+                    mysqli_stmt_bind_param($seller_stmt, 'ids', $seller_id, $ticket_price, $ticketDetail);
+                    mysqli_stmt_execute($seller_stmt);
+                }
+
                 // Commit transaction
                 mysqli_commit($conn);
-                
+
                 $response['success'] = true;
                 $response['message'] = "Ticket purchased successfully! $" . number_format($ticket_price, 2) . " has been deducted from your wallet.";
                 $response['amountPaid'] = number_format($ticket_price, 2);

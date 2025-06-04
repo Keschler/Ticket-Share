@@ -89,9 +89,36 @@ try {
             PRIMARY KEY (`BalanceID`),
             UNIQUE KEY `UserID` (`UserID`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        
+
         if (!mysqli_query($conn, $create_balance_table)) {
             throw new Exception("Failed to create balance table: " . mysqli_error($conn));
+        }
+    }
+
+    // Check if the transactions table exists
+    $transaction_check_query = "SHOW TABLES LIKE 'transactions'";
+    $result = mysqli_query($conn, $transaction_check_query);
+
+    if (!$result) {
+        throw new Exception("Transactions table check failed: " . mysqli_error($conn));
+    }
+
+    if (mysqli_num_rows($result) == 0) {
+        // Create transactions table
+        $create_transactions_table = "CREATE TABLE `transactions` (
+            `TransactionID` INT(11) NOT NULL AUTO_INCREMENT,
+            `UserID` INT(11) NOT NULL,
+            `Type` VARCHAR(20) NOT NULL,
+            `Amount` DECIMAL(10,2) NOT NULL,
+            `Details` VARCHAR(255) DEFAULT NULL,
+            `Timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`TransactionID`),
+            INDEX (`UserID`),
+            FOREIGN KEY (`UserID`) REFERENCES `users`(`ID`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!mysqli_query($conn, $create_transactions_table)) {
+            throw new Exception("Failed to create transactions table: " . mysqli_error($conn));
         }
     }
 
