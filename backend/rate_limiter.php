@@ -2,7 +2,9 @@
 // Rate limiting functionality to prevent brute force attacks
 
 function checkRateLimit($identifier, $maxAttempts = 5, $timeWindow = 900) { // 15 minutes
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     
     $currentTime = time();
     $rateLimitKey = 'rate_limit_' . $identifier;
@@ -53,7 +55,9 @@ function checkRateLimit($identifier, $maxAttempts = 5, $timeWindow = 900) { // 1
 }
 
 function recordFailedAttempt($identifier) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     
     $rateLimitKey = 'rate_limit_' . $identifier;
     
@@ -69,7 +73,9 @@ function recordFailedAttempt($identifier) {
 }
 
 function resetRateLimit($identifier) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     
     $rateLimitKey = 'rate_limit_' . $identifier;
     unset($_SESSION[$rateLimitKey]);

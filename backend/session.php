@@ -1,7 +1,7 @@
 <?php
 // Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // Set proper CORS headers for handling credentials only if this is the main script
 if (!isset($INCLUDED_FROM_OTHER_SCRIPT)) {
