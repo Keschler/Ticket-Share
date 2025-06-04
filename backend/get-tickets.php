@@ -34,18 +34,23 @@ try {
         throw new Exception('Invalid user ID');
     }
 
-    // 7) Query all tickets
+    // 7) Query only those tickets that have NOT been sold yet (BuyerID IS NULL)
     $sql = "
         SELECT
             TicketID,
-            TicketName AS eventName,
+            TicketName       AS eventName,
             DATE_FORMAT(Date, '%Y-%m-%d') AS date,
-            TIME_FORMAT(Time, '%H:%i') AS time,
-            Location AS location,
-            Price AS price,
-            ImageURL AS image,
-            (SELECT Username FROM users WHERE users.ID = tickets.SellerID) AS sellerName
+            TIME_FORMAT(Time, '%H:%i')     AS time,
+            Location         AS location,
+            Price            AS price,
+            ImageURL         AS image,
+            (SELECT Username 
+               FROM users 
+              WHERE users.ID = tickets.SellerID
+            ) AS sellerName
         FROM tickets
+        WHERE BuyerID IS NULL
+        ORDER BY Exp_Date_Time DESC
     ";
     $result = mysqli_query($conn, $sql);
     if ($result === false) {
