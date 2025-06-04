@@ -156,7 +156,7 @@
                     <h3 class="ticket-title">${t.TicketName||t.eventName}</h3>
                     <div class="ticket-info">📅 ${(t.Date||t.date)} at ${(t.Time||t.time)}</div>
                     <div class="ticket-info">📍 ${(t.Location||t.location)}</div>
-                    <div class="ticket-info">👤 Seller: ${t.SellerName||'Unknown'}</div>
+                    <div class="ticket-info">👤 Seller: ${t.SellerName||t.sellerName||'Unknown'}</div>
                     <div class="ticket-price">$${(+t.Price||+t.price).toFixed(2)}</div>
                     <div class="ticket-actions">
                         <button class="btn btn-primary" onclick="buyTicket(${t.TicketID},${+t.Price||+t.price})">Buy Ticket</button>
