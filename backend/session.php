@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 // Set proper CORS headers for handling credentials only if this is the main script
-if (!isset($INCLUDED_FROM_OTHER_SCRIPT)) {
+if (!defined('INCLUDED_FROM_OTHER_SCRIPT')) {
     header('Access-Control-Allow-Origin: http://localhost');  // Use your actual domain in production
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -56,9 +56,9 @@ function getUserSessionData() {
     }
     
     return [
-        'id' => getCurrentUserId(),
+        'id'       => getCurrentUserId(),
         'username' => getCurrentUsername(),
-        'email' => isset($_SESSION['email']) ? $_SESSION['email'] : null,
+        'email'    => isset($_SESSION['email']) ? $_SESSION['email'] : null,
     ];
 }
 
@@ -90,13 +90,16 @@ function checkCsrfToken() {
 }
 
 // Handle session status check only if this file is accessed directly
-if (!isset($INCLUDED_FROM_OTHER_SCRIPT) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+// (i.e., when the request targets session.php itself)
+$scriptName = basename($_SERVER['SCRIPT_NAME']);
+$selfName   = basename(__FILE__);
+if ($scriptName === $selfName && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $response = array('success' => false, 'message' => '');
     
     if (isLoggedIn()) {
-        $response['success'] = true;
-        $response['message'] = 'User is logged in';
-        $response['user'] = getUserSessionData();
+        $response['success']    = true;
+        $response['message']    = 'User is logged in';
+        $response['user']       = getUserSessionData();
         $response['csrf_token'] = $_SESSION['csrf_token']; // Include CSRF token in response
     } else {
         $response['message'] = 'User is not logged in';
@@ -106,3 +109,4 @@ if (!isset($INCLUDED_FROM_OTHER_SCRIPT) && $_SERVER['REQUEST_METHOD'] === 'GET')
     exit;
 }
 ?>
+

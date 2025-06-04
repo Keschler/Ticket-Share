@@ -1,82 +1,76 @@
 <?php
-// Enable error reporting for debugging
+// --------------------------------------------------
+// backend/get-tickets.php
+// --------------------------------------------------
+
+// 1) Prevent session.php from emitting its “status check” JSON:
+define('INCLUDED_FROM_OTHER_SCRIPT', true);
+
+// 2) Set JSON header (no other HTML or whitespace must appear)
+header('Content-Type: application/json');
+
+// 3) Enable error logging, but do NOT echo any errors or warnings to the output
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-// For CORS - allow cross-origin requests
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
+// 4) Include database and session (session.php will NOT send its own JSON now)
+require_once __DIR__ . '/db_connection.php';
+require_once __DIR__ . '/session.php';
 
-// Include database connection
-require_once 'db_connection.php';
-
-// Initialize response array
-$response = array('success' => false, 'tickets' => array(), 'message' => '');
+// 5) Initialize the default response
+$response = [
+    'success' => false,
+    'message' => '',
+    'tickets' => []
+];
 
 try {
-    // Check if the tickets table exists
-    $table_check_query = "SHOW TABLES LIKE 'tickets'";
-    $result = mysqli_query($conn, $table_check_query);
-    
-    if (!$result) {
-        throw new Exception("Table check failed: " . mysqli_error($conn));
+    // 6) Ensure user is logged in (session.php has already started the session)
+    if (!isLoggedIn()) {
+        throw new Exception('User is not logged in');
     }
-    
-    // If tickets table doesn't exist, return empty array
-    if (mysqli_num_rows($result) == 0) {
-        $response['message'] = "Tickets table doesn't exist.";
-        echo json_encode($response);
-        exit;
+    $userId = (int) getCurrentUserId();
+    if ($userId <= 0) {
+        throw new Exception('Invalid user ID');
     }
-    
-    // Define the query to fetch tickets
-    $query = "SELECT 
-                t.TicketID,
-                t.TicketName AS eventName,
-                DATE_FORMAT(t.Date, '%Y-%m-%d') AS date,
-                TIME_FORMAT(t.Time, '%H:%i') AS time,
-                t.Location AS location,
-                t.Price AS price,
-                DATE_FORMAT(t.Exp_Date_Time, '%Y-%m-%d %H:%i:%s') AS expiration,
-                t.ImageURL AS image,
-                t.SellerID,
-                t.BuyerID,
-                t.SaleType,
-                t.Currency AS currency,
-                u.Username AS sellerName
-              FROM tickets t
-              LEFT JOIN users u ON t.SellerID = u.ID
-              WHERE t.BuyerID IS NULL
-              ORDER BY t.Exp_Date_Time DESC";
-    
-    $result = mysqli_query($conn, $query);
-    
-    if (!$result) {
-        throw new Exception("Query failed: " . mysqli_error($conn));
+
+    // 7) Query all tickets
+    $sql = "
+        SELECT
+            TicketID,
+            TicketName AS eventName,
+            DATE_FORMAT(Date, '%Y-%m-%d') AS date,
+            TIME_FORMAT(Time, '%H:%i') AS time,
+            Location AS location,
+            Price AS price,
+            ImageURL AS image,
+            (SELECT Username FROM users WHERE users.ID = tickets.SellerID) AS sellerName
+        FROM tickets
+    ";
+    $result = mysqli_query($conn, $sql);
+    if ($result === false) {
+        throw new Exception('Database error: ' . mysqli_error($conn));
     }
-    
-    // Fetch all tickets from the result
-    $tickets = array();
+
+    // 8) Fetch into array
+    $tickets = [];
     while ($row = mysqli_fetch_assoc($result)) {
-        // Add ticket data to tickets array
         $tickets[] = $row;
     }
-    
+
+    // 9) Build the successful response
     $response['success'] = true;
+    $response['message'] = count($tickets) . ' tickets found';
     $response['tickets'] = $tickets;
-    $response['message'] = "Tickets fetched successfully.";
-    
+
 } catch (Exception $e) {
-    $response['message'] = "Error: " . $e->getMessage();
-} finally {
-    // Close database connection
-    if (isset($conn) && $conn) {
-        mysqli_close($conn);
-    }
-    
-    // Return response as JSON
-    echo json_encode($response);
+    // 10) On any exception, return success=false plus the message
+    $response['success'] = false;
+    $response['message'] = $e->getMessage();
+    $response['tickets'] = [];
 }
-?>
+
+// 11) Echo exactly one JSON object (no extra whitespace, no HTML)
+echo json_encode($response, JSON_PRETTY_PRINT);
+exit;
+
