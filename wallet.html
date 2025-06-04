@@ -257,6 +257,23 @@
             border-radius: 5px;
         }
 
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            border: 1px solid #e9ecef;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .transaction-table th {
+            background: #f8f9fa;
+        }
+
         @media (max-width: 768px) {
             .wallet-actions {
                 grid-template-columns: 1fr;
@@ -286,6 +303,20 @@
             <a href="profile/profile.html" class="nav-btn">Profile</a>
             <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
             <a href="#" class="nav-btn" id="authBtn">Login / Register</a>
+        </div>
+
+        <div class="wallet-card">
+            <h2 class="wallet-title">Transaction History</h2>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionBody"></tbody>
+            </table>
         </div>
     </div>
 
@@ -565,8 +596,36 @@
             }
         });
 
-        // Load balance when page loads
-        window.addEventListener('load', loadBalance);
+        async function loadTransactions() {
+            if (!await checkAuth()) return;
+            try {
+                const response = await fetch('backend/transactions.php', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('transactionBody');
+                    tbody.innerHTML = '';
+                    data.transactions.forEach(tx => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${tx.time}</td><td>${tx.type}</td><td>$${tx.amount}</td>`;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    showMessage('Failed to load transactions: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showMessage('Failed to load transactions. Error: ' + error.message, 'error');
+            }
+        }
+
+        // Load balance and transactions when page loads
+        window.addEventListener('load', () => {
+            loadBalance();
+            loadTransactions();
+        });
     </script>
 </body>
 </html>
