@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile API Test</title>
+</head>
+<body>
+    <h1>Profile API Test</h1>
+    <button onclick="testSession()">Test Session</button>
+    <button onclick="testProfile()">Test Profile API</button>
+    <div id="output" style="margin-top: 20px; padding: 20px; background: #f0f0f0; white-space: pre-wrap;"></div>
+    
+    <script>
+        async function testSession() {
+            try {
+                const response = await fetch('../backend/session.php', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                document.getElementById('output').textContent = 'Session Test:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('output').textContent = 'Session Error: ' + error.message;
+            }
+        }
+        
+        async function testProfile() {
+            try {
+                console.log('Testing profile API...');
+                
+                const response = await fetch('../backend/get-profile.php', {
+                    credentials: 'include',
+                    method: 'GET'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                document.getElementById('output').textContent = 'Profile Test:\n' + JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                console.error('Profile test error:', error);
+                document.getElementById('output').textContent = 'Profile Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

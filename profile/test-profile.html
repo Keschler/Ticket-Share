@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Test</title>
+</head>
+<body>
+    <h1>Profile Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testProfile() {
+            try {
+                console.log('Testing profile endpoint...');
+                
+                // First check session
+                const sessionResponse = await fetch('../backend/session.php', {
+                    credentials: 'include'
+                });
+                const sessionData = await sessionResponse.json();
+                console.log('Session data:', sessionData);
+                
+                // Then test profile
+                const profileResponse = await fetch('../backend/get-profile.php', {
+                    credentials: 'include'
+                });
+                console.log('Profile response status:', profileResponse.status);
+                
+                const profileData = await profileResponse.json();
+                console.log('Profile data:', profileData);
+                
+                document.getElementById('output').innerHTML = 
+                    '<h2>Session:</h2><pre>' + JSON.stringify(sessionData, null, 2) + '</pre>' +
+                    '<h2>Profile:</h2><pre>' + JSON.stringify(profileData, null, 2) + '</pre>';
+                    
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Test when page loads
+        testProfile();
+    </script>
+</body>
+</html>
