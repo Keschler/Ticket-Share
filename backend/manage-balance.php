@@ -185,8 +185,16 @@ try {
                 $balance_result = mysqli_stmt_get_result($get_stmt);
                 $balance_row = mysqli_fetch_assoc($balance_result);
                 
-                $response['success'] = true;
-                $response['message'] = "Successfully added $" . number_format($amount, 2) . " to your balance";
+                // Log deposit transaction
+                $log_query = "INSERT INTO transactions (UserID, Type, Amount) VALUES (?, 'deposit', ?)";
+                $log_stmt  = mysqli_prepare($conn, $log_query);
+                if ($log_stmt) {
+                    mysqli_stmt_bind_param($log_stmt, 'id', $userId, $amount);
+                    mysqli_stmt_execute($log_stmt);
+                }
+
+                $response['success']  = true;
+                $response['message']  = "Successfully added $" . number_format($amount, 2) . " to your balance";
                 $response['newBalance'] = number_format($balance_row['Balance'], 2, '.', '');
             } else {
                 throw new Exception('Failed to update balance');
@@ -248,8 +256,17 @@ try {
             
             if ($success) {
                 $newBalance = $currentBalance - $amount;
-                $response['success'] = true;
-                $response['message'] = "Successfully withdrew $" . number_format($amount, 2) . " from your balance";
+
+                // Log withdrawal transaction
+                $log_query = "INSERT INTO transactions (UserID, Type, Amount) VALUES (?, 'withdrawal', ?)";
+                $log_stmt  = mysqli_prepare($conn, $log_query);
+                if ($log_stmt) {
+                    mysqli_stmt_bind_param($log_stmt, 'id', $userId, $amount);
+                    mysqli_stmt_execute($log_stmt);
+                }
+
+                $response['success']  = true;
+                $response['message']  = "Successfully withdrew $" . number_format($amount, 2) . " from your balance";
                 $response['newBalance'] = number_format($newBalance, 2, '.', '');
             } else {
                 throw new Exception('Failed to update balance');
