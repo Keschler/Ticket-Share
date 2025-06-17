@@ -16,7 +16,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             background-attachment: fixed;
         }
 
@@ -167,7 +167,7 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: white;
             border: none;
             padding: 0.8rem 1.5rem;
@@ -312,6 +312,124 @@
             border: none;
         }
 
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .status-available {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.5);
+        }
+
+        .status-sold {
+            background: rgba(23, 162, 184, 0.2);
+            color: #17a2b8;
+            border: 1px solid rgba(23, 162, 184, 0.5);
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+
+        .status-confirmed {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.5);
+        }
+
+        .status-disputed {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+
+        .status-expired {
+            background: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.5);
+        }
+
+        .status-purchased {
+            background: rgba(40, 167, 69, 0.2);
+            color: #ffffff;
+            border: 1px solid rgba(40, 167, 69, 0.5);
+        }
+
+        .status-waiting {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            border: 1px solid rgba(255, 152, 0, 0.5);
+        }
+
+        .role-indicator {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .buyer-role {
+            background: rgba(40, 167, 69, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(40, 167, 69, 0.4);
+        }
+
+        .seller-role {
+            background: rgba(255, 152, 0, 0.15);
+            color: #e65100;
+            border: 1px solid rgba(255, 152, 0, 0.4);
+        }
+
+        .confirmation-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .confirm-btn, .dispute-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background: linear-gradient(45deg, #218838, #1fa583);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .dispute-btn {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+        .dispute-btn:hover {
+            background: linear-gradient(45deg, #c82333, #e8680e);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -363,6 +481,7 @@
         <div class="nav-buttons">
             <a href="../index.html" class="nav-btn">Home</a>
             <a href="../favourites.php" class="nav-btn">Favorites</a>
+            <a href="../purchases.html" class="nav-btn">My Purchases</a>
             <a href="../wallet.html" class="nav-btn">Wallet</a>
             <a href="../profile/profile.html" class="nav-btn">Profile</a>
             <a href="../create-ticket.html" class="nav-btn">Create Ticket</a>
@@ -415,20 +534,11 @@
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Handle login/register button
-            const username = localStorage.getItem('profileName') || localStorage.getItem('username');
-            const userId = localStorage.getItem('userId');
-            const loginRegisterBtn = document.getElementById('login-register-btn');
-            
-            // Always show Login / Register button
-            loginRegisterBtn.textContent = 'Login / Register';
-            loginRegisterBtn.onclick = function() {
-                window.location.href = '../login.html';
-            };
-        });
+        // The initialization is now handled in profile.js
+        // which will call updateAuthUI() as part of initializeProfile()
     </script>
     
+    <script src="../js/auth.js"></script>
     <script src="profile.js"></script>
 </body>
 

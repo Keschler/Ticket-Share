@@ -2,7 +2,11 @@
 async function checkAuthStatus() {
     try {
         console.log('Checking auth status...');
-        const response = await fetch('backend/session.php', {
+        // Determine if we're in a subdirectory
+        const isInSubdirectory = window.location.pathname.includes('/profile/');
+        const sessionPath = isInSubdirectory ? '../backend/session.php' : 'backend/session.php';
+        
+        const response = await fetch(sessionPath, {
             method: 'GET',
             credentials: 'include', // Important for cookies/sessions
             headers: {
@@ -75,17 +79,22 @@ async function updateAuthUI() {
     
     if (!loginRegisterBtn) return;
     
+    // Determine if we're in a subdirectory by checking the current path
+    const isInSubdirectory = window.location.pathname.includes('/profile/');
+    const indexPath = isInSubdirectory ? '../index.html' : 'index.html';
+    const loginPath = isInSubdirectory ? '../login.html' : 'login.html';
+    
     if (isLoggedIn && user) {
         loginRegisterBtn.textContent = 'Logout';
         loginRegisterBtn.onclick = async function() {
             if (await logout()) {
-                window.location.href = 'index.html';
+                window.location.href = indexPath;
             }
         };
     } else {
         loginRegisterBtn.textContent = 'Login / Register';
         loginRegisterBtn.onclick = function() {
-            window.location.href = 'login.html';
+            window.location.href = loginPath;
         };
     }
     
@@ -96,7 +105,11 @@ async function updateAuthUI() {
 // Logout function
 async function logout() {
     try {
-        const response = await fetch('backend/logout.php', createFetchOptions('POST'));
+        // Determine if we're in a subdirectory
+        const isInSubdirectory = window.location.pathname.includes('/profile/');
+        const logoutPath = isInSubdirectory ? '../backend/logout.php' : 'backend/logout.php';
+        
+        const response = await fetch(logoutPath, createFetchOptions('POST'));
         
         const data = await response.json();
         
@@ -104,6 +117,7 @@ async function logout() {
         localStorage.removeItem('profileName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userId');
+        localStorage.removeItem('username');
         localStorage.removeItem('rememberUser');
         localStorage.removeItem('csrf_token');
         

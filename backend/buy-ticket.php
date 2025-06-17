@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Transaction started.");
 
             // Check if ticket exists and is available
-            $check_query = "SELECT TicketID, Price, SellerID FROM tickets WHERE TicketID = ? AND BuyerID IS NULL";
+            $check_query = "SELECT TicketID, Price, SellerID, Date FROM tickets WHERE TicketID = ? AND BuyerID IS NULL";
             $stmt = mysqli_prepare($conn, $check_query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . mysqli_error($conn));
@@ -82,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ticket = mysqli_fetch_assoc($result);
             $ticket_price = floatval($ticket['Price']);
             $seller_id = intval($ticket['SellerID']);
-            error_log("Ticket found. Price: {$ticket_price}, SellerID: {$seller_id}");
+            $event_date = $ticket['Date']; // Add this line to get event date early
+            error_log("Ticket found. Price: {$ticket_price}, SellerID: {$seller_id}, EventDate: {$event_date}");
 
             // Check buyer balance
             $balance_query = "SELECT Balance FROM balance WHERE UserID = ?";
@@ -128,52 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             error_log("Buyer balance deducted by {$ticket_price}.");
 
-            // Add money to seller's balance (create record if none)
-            $seller_balance_query = "SELECT Balance FROM balance WHERE UserID = ?";
-            $seller_balance_stmt = mysqli_prepare($conn, $seller_balance_query);
-            if (!$seller_balance_stmt) {
-                throw new Exception("Prepare failed (seller_balance_query): " . mysqli_error($conn));
-            }
-            mysqli_stmt_bind_param($seller_balance_stmt, "i", $seller_id);
-            $exec_seller_balance = mysqli_stmt_execute($seller_balance_stmt);
-            if (!$exec_seller_balance) {
-                throw new Exception("Execute failed (seller_balance_query): " . mysqli_stmt_error($seller_balance_stmt));
-            }
-            $seller_balance_result = mysqli_stmt_get_result($seller_balance_stmt);
-            if ($seller_balance_result === false) {
-                throw new Exception("Get result failed (seller_balance_query): " . mysqli_error($conn));
-            }
-            $seller_balance_row_count = mysqli_num_rows($seller_balance_result);
-            error_log("seller_balance_query returned rows: {$seller_balance_row_count}");
-
-            if ($seller_balance_row_count === 0) {
-                // Create balance record for seller
-                $create_seller_balance = "INSERT INTO balance (UserID, Balance) VALUES (?, ?)";
-                $create_stmt = mysqli_prepare($conn, $create_seller_balance);
-                if (!$create_stmt) {
-                    throw new Exception("Prepare failed (create_seller_balance): " . mysqli_error($conn));
-                }
-                mysqli_stmt_bind_param($create_stmt, "id", $seller_id, $ticket_price);
-                $exec_create = mysqli_stmt_execute($create_stmt);
-                if (!$exec_create) {
-                    throw new Exception("Execute failed (create_seller_balance): " . mysqli_stmt_error($create_stmt));
-                }
-                error_log("Seller balance record created with {$ticket_price}.");
-            } else {
-                // Update existing seller balance
-                $credit_query = "UPDATE balance SET Balance = Balance + ? WHERE UserID = ?";
-                $credit_stmt = mysqli_prepare($conn, $credit_query);
-                if (!$credit_stmt) {
-                    throw new Exception("Prepare failed (credit_query): " . mysqli_error($conn));
-                }
-                mysqli_stmt_bind_param($credit_stmt, "di", $ticket_price, $seller_id);
-                $exec_credit = mysqli_stmt_execute($credit_stmt);
-                if (!$exec_credit) {
-                    throw new Exception("Execute failed (credit_query): " . mysqli_stmt_error($credit_stmt));
-                }
-                error_log("Seller balance credited by {$ticket_price}.");
-            }
-
             // Update ticket with buyer information
             $update_query = "UPDATE tickets SET BuyerID = ? WHERE TicketID = ?";
             $update_stmt = mysqli_prepare($conn, $update_query);
@@ -187,8 +142,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             error_log("Ticket {$ticket_id} updated with BuyerID = {$buyer_id}.");
 
-            // Log transactions for buyer and seller
-            $ticketDetail = 'TicketID ' . $ticket_id;
+            // Create ticket confirmation record with 3-day expiry after event
+            error_log("Raw event_date from database: '{$event_date}' (type: " . gettype($event_date) . ")");
+            
+            // Parse and validate the event date with robust fallback
+            if (empty($event_date)) {
+                error_log("Event date is empty, using current date as fallback");
+                $event_datetime = new DateTime();
+            } else {
+                // Convert to string if it's not already
+                $event_date_str = (string)$event_date;
+                error_log("Event date as string: '{$event_date_str}'");
+                
+                $event_datetime = null;
+                
+                // Try different parsing methods
+                try {
+                    // Method 1: Direct DateTime construction
+                    $event_datetime = new DateTime($event_date_str);
+                    $year = (int)$event_datetime->format('Y');
+                    
+                    // Check if year is reasonable
+                    if ($year < 1900 || $year > 2100) {
+                        throw new Exception("Invalid year: {$year}");
+                    }
+                    
+                    error_log("Successfully parsed with DateTime constructor, year: {$year}");
+                    
+                } catch (Exception $e) {
+                    error_log("DateTime constructor failed: " . $e->getMessage());
+                    $event_datetime = null;
+                }
+                
+                // Method 2: Try specific formats if first method failed
+                if ($event_datetime === null) {
+                    $formats = [
+                        'Y-m-d', 
+                        'Y-m-d H:i:s', 
+                        'd-m-Y', 
+                        'm-d-Y',
+                        'Y/m/d',
+                        'd/m/Y',
+                        'm/d/Y'
+                    ];
+                    
+                    foreach ($formats as $format) {
+                        $test_date = DateTime::createFromFormat($format, $event_date_str);
+                        if ($test_date !== false) {
+                            $year = (int)$test_date->format('Y');
+                            if ($year >= 1900 && $year <= 2100) {
+                                $event_datetime = $test_date;
+                                error_log("Successfully parsed with format '{$format}', year: {$year}");
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Method 3: Fallback to current date if all parsing failed
+                if ($event_datetime === null) {
+                    error_log("All date parsing failed, using current date as fallback");
+                    $event_datetime = new DateTime();
+                }
+            }
+            
+            // Add 3 days to the event date
+            $expiry_datetime = clone $event_datetime;
+            $expiry_datetime->add(new DateInterval('P3D')); // Add 3 days
+            
+            $expires_at = $expiry_datetime->format('Y-m-d H:i:s');
+            $event_date_formatted = $event_datetime->format('Y-m-d');
+            
+            // Final validation
+            $expiry_year = (int)$expiry_datetime->format('Y');
+            if ($expiry_year < 2020 || $expiry_year > 2030) {
+                error_log("Expiry year still invalid: {$expiry_year}, using current date + 3 days");
+                $expiry_datetime = new DateTime();
+                $expiry_datetime->add(new DateInterval('P3D'));
+                $expires_at = $expiry_datetime->format('Y-m-d H:i:s');
+                $event_date_formatted = date('Y-m-d');
+            }
+            
+            error_log("Final dates - Event: '{$event_date_formatted}', Expiry: '{$expires_at}'");
+            
+            $confirmation_query = "INSERT INTO ticket_confirmations (TicketID, BuyerID, SellerID, EventDate, ExpiresAt) VALUES (?, ?, ?, ?, ?)";
+            $confirmation_stmt = mysqli_prepare($conn, $confirmation_query);
+            if (!$confirmation_stmt) {
+                throw new Exception("Prepare failed (confirmation_query): " . mysqli_error($conn));
+            }
+            mysqli_stmt_bind_param($confirmation_stmt, "iiiss", $ticket_id, $buyer_id, $seller_id, $event_date_formatted, $expires_at);
+            $exec_confirmation = mysqli_stmt_execute($confirmation_stmt);
+            if (!$exec_confirmation) {
+                throw new Exception("Execute failed (confirmation_query): " . mysqli_stmt_error($confirmation_stmt));
+            }
+            error_log("Ticket confirmation record created. Payment will be held until buyer confirms or 3 days after event ({$expires_at}).");
+
+            // Log transactions for buyer (seller will be credited later upon confirmation)
+            $ticketDetail = 'TicketID ' . $ticket_id . ' - Payment held pending confirmation';
 
             $buyer_log  = "INSERT INTO transactions (UserID, Type, Amount, Details) VALUES (?, 'purchase', ?, ?)";
             $buyer_stmt = mysqli_prepare($conn, $buyer_log);
@@ -200,22 +250,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("Prepare failed (buyer_log): " . mysqli_error($conn));
             }
 
-            $seller_log = "INSERT INTO transactions (UserID, Type, Amount, Details) VALUES (?, 'sale', ?, ?)";
-            $seller_stmt = mysqli_prepare($conn, $seller_log);
-            if ($seller_stmt) {
-                mysqli_stmt_bind_param($seller_stmt, 'ids', $seller_id, $ticket_price, $ticketDetail);
-                mysqli_stmt_execute($seller_stmt);
-                error_log("Seller transaction logged: user {$seller_id}, amount {$ticket_price}.");
-            } else {
-                error_log("Prepare failed (seller_log): " . mysqli_error($conn));
-            }
-
             // Commit transaction
             mysqli_commit($conn);
             error_log("Transaction committed successfully.");
 
             $response['success'] = true;
-            $response['message'] = "Ticket purchased successfully! \${$ticket_price} has been deducted from your wallet.";
+            $response['message'] = "Ticket purchased successfully! \${$ticket_price} has been deducted from your wallet. Payment will be held until you confirm the ticket validity or 3 days after the event.";
             $response['amountPaid'] = number_format($ticket_price, 2);
 
         } catch (Exception $e) {

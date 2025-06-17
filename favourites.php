@@ -7,7 +7,7 @@
     <!--  ---------  CSS (unchanged)  --------- -->
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#333}
+        body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);min-height:100vh;color:#333}
         .header{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.2)}
         .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
         .logo-icon{width:40px;height:40px;background:linear-gradient(45deg,#ff6b6b,#4ecdc4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem}
@@ -21,9 +21,15 @@
         .loading-message,.no-favorites{text-align:center;color:#fff;font-size:1.2rem;margin:2rem 0}
         .no-favorites{background:rgba(255,255,255,.1);padding:2rem;border-radius:15px;backdrop-filter:blur(10px)}
         .tickets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem}
-        .ticket-card{background:rgba(255,255,255,.95);border-radius:15px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);transition:all .3s ease}
+        .ticket-card{background:rgba(255,255,255,.95);border-radius:15px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);transition:all .3s ease;position:relative}
         .ticket-card:hover{transform:translateY(-10px);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+        .ticket-card.sold{opacity:0.7;border:3px solid #e74c3c;background:rgba(240,240,240,.95)}
+        .ticket-card.sold::before{content:'SOLD';position:absolute;top:15px;right:15px;background:#e74c3c;color:white;padding:8px 15px;border-radius:20px;font-weight:bold;font-size:0.9rem;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.3);text-shadow:1px 1px 2px rgba(0,0,0,0.5)}
+        .ticket-card.sold:hover{transform:translateY(-3px)}
         .ticket-image{width:100%;height:200px;object-fit:cover;background:linear-gradient(45deg,#f0f0f0,#e0e0e0)}
+        .ticket-image.sold{filter:grayscale(50%) brightness(0.8)}
+        .ticket-card.sold .ticket-title{color:#666;text-decoration:line-through}
+        .ticket-card.sold .ticket-price{color:#999}
         .ticket-content{padding:1.5rem}
         .ticket-title{font-size:1.3rem;font-weight:bold;color:#2c3e50;margin-bottom:.5rem}
         .ticket-info{color:#666;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
@@ -49,6 +55,7 @@
         <div class="nav-buttons">
             <a href="index.html" class="nav-btn">Home</a>
             <a href="favourites.php" class="nav-btn">Favorites</a>
+            <a href="purchases.html" class="nav-btn">My Purchases</a>
             <a href="wallet.html" class="nav-btn">Wallet</a>
             <a href="profile/profile.html" class="nav-btn">Profile</a>
             <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
@@ -148,18 +155,26 @@
         }
         function createTicketCard(t){
             const card=document.createElement('div');
-            card.className='ticket-card';
+            const isSold = t.BuyerID && t.BuyerID !== null;
+            card.className = isSold ? 'ticket-card sold' : 'ticket-card';
+            card.setAttribute('data-ticket-id', t.TicketID);
+            
             const img=t.ImageURL||t.image||'https://via.placeholder.com/350x200?text=Event+Image';
+            const buyButtonHtml = isSold 
+                ? `<button class="btn btn-primary" disabled style="opacity:0.5;cursor:not-allowed">Sold Out</button>`
+                : `<button class="btn btn-primary" onclick="buyTicket(${t.TicketID},${+t.Price||+t.price})">Buy Ticket</button>`;
+            
             card.innerHTML=`
-                <img src="${img}" alt="${t.TicketName||t.eventName}" class="ticket-image" onerror="this.src='https://via.placeholder.com/350x200?text=Event+Image'">
+                <img src="${img}" alt="${t.TicketName||t.eventName}" class="ticket-image ${isSold ? 'sold' : ''}" onerror="this.src='https://via.placeholder.com/350x200?text=Event+Image'">
                 <div class="ticket-content">
                     <h3 class="ticket-title">${t.TicketName||t.eventName}</h3>
                     <div class="ticket-info">📅 ${(t.Date||t.date)} at ${(t.Time||t.time)}</div>
                     <div class="ticket-info">📍 ${(t.Location||t.location)}</div>
                     <div class="ticket-info">👤 Seller: ${t.SellerName||t.sellerName||'Unknown'}</div>
+                    ${isSold ? '<div class="ticket-info" style="color:#e74c3c;font-weight:bold">❌ This ticket has been sold</div>' : ''}
                     <div class="ticket-price">$${(+t.Price||+t.price).toFixed(2)}</div>
                     <div class="ticket-actions">
-                        <button class="btn btn-primary" onclick="buyTicket(${t.TicketID},${+t.Price||+t.price})">Buy Ticket</button>
+                        ${buyButtonHtml}
                         <button class="btn btn-danger" onclick="removeFromFavorites(${t.TicketID})">Remove ❤️</button>
                     </div>
                 </div>`;
@@ -169,28 +184,109 @@
         /* -------------  ACTIONS  ------------- */
         async function removeFromFavorites(id){
             if(!await checkAuth())return;
+            
+            // Immediately update UI to prevent flickering
+            const cardToRemove = document.querySelector(`[data-ticket-id="${id}"]`);
+            if(cardToRemove) {
+                cardToRemove.style.opacity = '0.5';
+                cardToRemove.style.pointerEvents = 'none';
+            }
+            
             try{
                 const r=await fetch('backend/manage-favorites.php',{
                     method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
                     body:JSON.stringify({action:'remove',ticketId:id,csrf_token:localStorage.getItem('csrf_token')})
                 });
                 const d=await r.json();
-                d.success?showMessage('Removed','success'):showMessage('Failed: '+d.message);
-                if(d.success)setTimeout(loadFavorites,1000);
-            }catch(e){showMessage('Error removing');}
+                
+                if(d.success) {
+                    showMessage('Removed from favorites','success');
+                    // Smooth removal animation
+                    if(cardToRemove) {
+                        cardToRemove.style.transition = 'all 0.3s ease';
+                        cardToRemove.style.transform = 'scale(0.8)';
+                        cardToRemove.style.opacity = '0';
+                        setTimeout(() => {
+                            cardToRemove.remove();
+                            // Check if no favorites left
+                            if(document.getElementById('ticketsContainer').children.length === 0) {
+                                document.getElementById('noFavoritesMessage').style.display = 'block';
+                            }
+                        }, 300);
+                    }
+                } else {
+                    showMessage('Failed: '+d.message);
+                    // Restore card if removal failed
+                    if(cardToRemove) {
+                        cardToRemove.style.opacity = '1';
+                        cardToRemove.style.pointerEvents = 'auto';
+                    }
+                }
+            }catch(e){
+                showMessage('Error removing favorite');
+                // Restore card if error occurred
+                if(cardToRemove) {
+                    cardToRemove.style.opacity = '1';
+                    cardToRemove.style.pointerEvents = 'auto';
+                }
+            }
         }
         async function buyTicket(id,price){
             if(!await checkAuth())return;
             if(!confirm(`Buy for $${(+price).toFixed(2)}?`))return;
+            
+            // Immediately update UI to show purchase in progress
+            const cardToBuy = document.querySelector(`[data-ticket-id="${id}"]`);
+            const buyButton = cardToBuy?.querySelector('.btn-primary');
+            if(buyButton) {
+                buyButton.disabled = true;
+                buyButton.textContent = 'Processing...';
+                buyButton.style.opacity = '0.7';
+            }
+            
             try{
                 const r=await fetch('backend/buy-ticket.php',{
                     method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
                     body:JSON.stringify({ticketId:id,csrf_token:localStorage.getItem('csrf_token')})
                 });
                 const d=await r.json();
-                d.success?showMessage(d.message,'success'):showMessage(d.message);
-                if(d.success)setTimeout(loadFavorites,2000);
-            }catch(e){showMessage('Purchase failed');}
+                
+                if(d.success) {
+                    showMessage(d.message,'success');
+                    // Update card to show as sold without full reload
+                    if(cardToBuy) {
+                        cardToBuy.classList.add('sold');
+                        const img = cardToBuy.querySelector('.ticket-image');
+                        if(img) img.classList.add('sold');
+                        const title = cardToBuy.querySelector('.ticket-title');
+                        if(title) title.style.textDecoration = 'line-through';
+                        if(buyButton) {
+                            buyButton.textContent = 'Sold Out';
+                            buyButton.style.cursor = 'not-allowed';
+                        }
+                        // Add sold indicator
+                        if(!cardToBuy.querySelector('::before')) {
+                            cardToBuy.style.position = 'relative';
+                        }
+                    }
+                } else {
+                    showMessage(d.message);
+                    // Restore buy button if purchase failed
+                    if(buyButton) {
+                        buyButton.disabled = false;
+                        buyButton.textContent = 'Buy Ticket';
+                        buyButton.style.opacity = '1';
+                    }
+                }
+            }catch(e){
+                showMessage('Purchase failed');
+                // Restore buy button if error occurred
+                if(buyButton) {
+                    buyButton.disabled = false;
+                    buyButton.textContent = 'Buy Ticket';
+                    buyButton.style.opacity = '1';
+                }
+            }
         }
 
         /* -------------  INIT  ------------- */

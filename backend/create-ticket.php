@@ -130,6 +130,53 @@ try {
         if (empty($ticketName) || empty($date) || empty($time) || empty($location) || empty($expiration) || $price === null) {
             $response['message'] = "All required fields must be filled.";
         } else {
+            // Validate dates
+            $currentDate = new DateTime();
+            $currentDate->setTime(0, 0, 0); // Reset time to start of day
+            
+            // Validate event date
+            try {
+                $eventDate = new DateTime($date);
+                if ($eventDate < $currentDate) {
+                    $response['message'] = "Event date cannot be in the past.";
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                    exit;
+                }
+            } catch (Exception $e) {
+                $response['message'] = "Invalid event date format.";
+                header('Content-Type: application/json');
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Validate expiration date
+            try {
+                $expirationDateTime = new DateTime($expiration);
+                $currentDateTime = new DateTime();
+                
+                if ($expirationDateTime <= $currentDateTime) {
+                    $response['message'] = "Expiration date must be in the future.";
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                    exit;
+                }
+                
+                // Check that expiration is not after the event
+                $eventDateTime = new DateTime($date . ' ' . $time);
+                if ($expirationDateTime > $eventDateTime) {
+                    $response['message'] = "Expiration date cannot be after the event date and time.";
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                    exit;
+                }
+            } catch (Exception $e) {
+                $response['message'] = "Invalid expiration date format.";
+                header('Content-Type: application/json');
+                echo json_encode($response);
+                exit;
+            }
+            
             // Prepare SQL statement
             $insert_ticket = "INSERT INTO tickets (TicketName, Date, Time, Location, Price, Exp_Date_Time, ImageURL, SellerID, SaleType, Currency) 
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

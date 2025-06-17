@@ -82,6 +82,7 @@ try {
                      t.Location AS location,
                      t.Price AS price,
                      t.ImageURL AS image,
+                     t.BuyerID,
                      u.Username AS sellerName
               FROM tickets t
               LEFT JOIN users u ON t.SellerID = u.ID

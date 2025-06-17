@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -97,7 +97,7 @@
         .wallet-title {
             font-size: 2.5rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -138,9 +138,9 @@
         }
 
         .action-card:hover {
-            border-color: #667eea;
+            border-color: #2c3e50;
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 10px 25px rgba(44, 62, 80, 0.2);
         }
 
         .action-title {
@@ -299,10 +299,11 @@
         <div class="nav-buttons">
             <a href="index.html" class="nav-btn">Home</a>
             <a href="favourites.php" class="nav-btn">Favorites</a>
+            <a href="purchases.html" class="nav-btn">My Purchases</a>
             <a href="wallet.html" class="nav-btn">Wallet</a>
             <a href="profile/profile.html" class="nav-btn">Profile</a>
             <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
-            <a href="#" class="nav-btn" id="authBtn">Login / Register</a>
+            <button class="nav-btn" id="login-register-btn">Login / Register</button>
         </div>
     </div>
 
@@ -623,6 +624,7 @@
 
         // Load balance and transactions when page loads
         window.addEventListener('load', () => {
+            updateAuthUI(); // Update login/logout button
             loadBalance();
             loadTransactions();
         });

@@ -5,7 +5,7 @@ ini_set('display_errors', 0);
 
 // Database configuration
 $db_host = "pzquwmxgtrbfoiyvclkhsnda.duckdns.org";
-$db_port = 1200;    
+$db_port = 1200;   
 $db_user = "remoteuser";
 $db_pass = "your_strong_password";
 $db_name = "users";
@@ -119,6 +119,77 @@ try {
 
         if (!mysqli_query($conn, $create_transactions_table)) {
             throw new Exception("Failed to create transactions table: " . mysqli_error($conn));
+        }
+    }
+
+    // Check if the ticket_confirmations table exists
+    $confirmations_check_query = "SHOW TABLES LIKE 'ticket_confirmations'";
+    $result = mysqli_query($conn, $confirmations_check_query);
+
+    if (!$result) {
+        throw new Exception("Ticket confirmations table check failed: " . mysqli_error($conn));
+    }
+
+    if (mysqli_num_rows($result) == 0) {
+        // Create ticket confirmations table
+        $create_confirmations_table = "CREATE TABLE `ticket_confirmations` (
+            `ConfirmationID` INT(11) NOT NULL AUTO_INCREMENT,
+            `TicketID` INT(11) NOT NULL,
+            `BuyerID` INT(11) NOT NULL,
+            `SellerID` INT(11) NOT NULL,
+            `Status` ENUM('pending', 'confirmed', 'disputed', 'auto_confirmed') DEFAULT 'pending',
+            `ConfirmationDate` TIMESTAMP NULL,
+            `EventDate` DATE NOT NULL,
+            `CreatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `ExpiresAt` TIMESTAMP NOT NULL,
+            PRIMARY KEY (`ConfirmationID`),
+            UNIQUE KEY `ticket_confirmation` (`TicketID`),
+            INDEX (`BuyerID`),
+            INDEX (`SellerID`),
+            INDEX (`Status`),
+            INDEX (`ExpiresAt`),
+            FOREIGN KEY (`TicketID`) REFERENCES `tickets`(`TicketID`) ON DELETE CASCADE,
+            FOREIGN KEY (`BuyerID`) REFERENCES `users`(`ID`) ON DELETE CASCADE,
+            FOREIGN KEY (`SellerID`) REFERENCES `users`(`ID`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!mysqli_query($conn, $create_confirmations_table)) {
+            throw new Exception("Failed to create ticket confirmations table: " . mysqli_error($conn));
+        }
+    }
+
+    // Check if the disputes table exists
+    $disputes_check_query = "SHOW TABLES LIKE 'disputes'";
+    $result = mysqli_query($conn, $disputes_check_query);
+
+    if (!$result) {
+        throw new Exception("Disputes table check failed: " . mysqli_error($conn));
+    }
+
+    if (mysqli_num_rows($result) == 0) {
+        // Create disputes table
+        $create_disputes_table = "CREATE TABLE `disputes` (
+            `DisputeID` INT(11) NOT NULL AUTO_INCREMENT,
+            `TicketID` INT(11) NOT NULL,
+            `BuyerID` INT(11) NOT NULL,
+            `SellerID` INT(11) NOT NULL,
+            `Reason` TEXT NOT NULL,
+            `Status` ENUM('open', 'resolved', 'closed') DEFAULT 'open',
+            `Resolution` TEXT NULL,
+            `CreatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `ResolvedAt` TIMESTAMP NULL,
+            PRIMARY KEY (`DisputeID`),
+            UNIQUE KEY `ticket_dispute` (`TicketID`),
+            INDEX (`BuyerID`),
+            INDEX (`SellerID`),
+            INDEX (`Status`),
+            FOREIGN KEY (`TicketID`) REFERENCES `tickets`(`TicketID`) ON DELETE CASCADE,
+            FOREIGN KEY (`BuyerID`) REFERENCES `users`(`ID`) ON DELETE CASCADE,
+            FOREIGN KEY (`SellerID`) REFERENCES `users`(`ID`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!mysqli_query($conn, $create_disputes_table)) {
+            throw new Exception("Failed to create disputes table: " . mysqli_error($conn));
         }
     }
 

@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -97,7 +97,7 @@
         .form-title {
             font-size: 2.5rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -137,9 +137,9 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #2c3e50;
             background: rgba(255, 255, 255, 1);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
         .btn {
@@ -210,6 +210,7 @@
         <div class="nav-buttons">
             <a href="index.html" class="nav-btn">Home</a>
             <a href="favourites.php" class="nav-btn">Favorites</a>
+            <a href="purchases.html" class="nav-btn">My Purchases</a>
             <a href="wallet.html" class="nav-btn">Wallet</a>
             <a href="profile/profile.html" class="nav-btn">Profile</a>
             <a href="create-ticket.html" class="nav-btn">Create Ticket</a>
@@ -288,6 +289,42 @@
             
             // Update the login/register button
             await updateAuthUI();
+            
+            // Set minimum dates to prevent past date selection
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+            const now = new Date();
+            const nowString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM format
+            
+            // Set minimum date for event date (today)
+            document.getElementById('date').setAttribute('min', todayString);
+            
+            // Set minimum datetime for expiration (now)
+            document.getElementById('expiration').setAttribute('min', nowString);
+            
+            // Add event listener to update expiration min date when event date changes
+            document.getElementById('date').addEventListener('change', function() {
+                const selectedDate = this.value;
+                const eventTime = document.getElementById('time').value || '23:59';
+                
+                if (selectedDate) {
+                    // Set expiration max to the event date and time
+                    const maxDateTime = selectedDate + 'T' + eventTime;
+                    document.getElementById('expiration').setAttribute('max', maxDateTime);
+                }
+            });
+            
+            // Update expiration max when time changes
+            document.getElementById('time').addEventListener('change', function() {
+                const selectedDate = document.getElementById('date').value;
+                const selectedTime = this.value;
+                
+                if (selectedDate && selectedTime) {
+                    // Set expiration max to the event date and time
+                    const maxDateTime = selectedDate + 'T' + selectedTime;
+                    document.getElementById('expiration').setAttribute('max', maxDateTime);
+                }
+            });
 
             // Handle form submission
             document.getElementById('ticketForm').addEventListener('submit', async function(e) {
@@ -300,9 +337,39 @@
                     window.location.href = 'login.html';
                     return;
                 }
-            
-
+                
+                // Validate dates before submission
                 const formData = new FormData(e.target);
+                const eventDate = formData.get('date');
+                const eventTime = formData.get('time');
+                const expirationDateTime = formData.get('expiration');
+                
+                // Validate event date
+                const eventDateObj = new Date(eventDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+                
+                if (eventDateObj < today) {
+                    alert('Event date cannot be in the past. Please select a future date.');
+                    return;
+                }
+                
+                // Validate expiration date
+                const expirationDateObj = new Date(expirationDateTime);
+                const now = new Date();
+                
+                if (expirationDateObj <= now) {
+                    alert('Expiration date must be in the future.');
+                    return;
+                }
+                
+                // Validate that expiration is before or on the event date
+                const eventWithTime = new Date(eventDate + 'T' + eventTime);
+                if (expirationDateObj > eventWithTime) {
+                    alert('Expiration date cannot be after the event date and time.');
+                    return;
+                }
+
                 const ticketData = {
                     eventName: formData.get('eventName'),
                     date: formData.get('date'),
