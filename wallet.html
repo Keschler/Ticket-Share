@@ -372,8 +372,7 @@
         async function checkAuth() {
             const { isLoggedIn } = await checkAuthStatus();
             if (!isLoggedIn) {
-                alert('Please log in to access your wallet');
-                window.location.href = 'login.html';
+                showMessage('Please log in to access your wallet', 'error');
                 return false;
             }
             return true;

@@ -91,8 +91,7 @@
         async function checkAuth(){
             const {isLoggedIn}=await checkAuthStatus();
             if(!isLoggedIn){
-                alert('Please log in to view your favorites');
-                location.href='login.html';
+                showMessage('Please log in to view your favorites');
                 return false;
             }
             return true;
