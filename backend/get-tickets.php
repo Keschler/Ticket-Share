@@ -44,6 +44,7 @@ try {
             Location         AS location,
             Price            AS price,
             ImageURL         AS image,
+            Exp_Date_Time    AS expiration,
             (SELECT Username 
                FROM users 
               WHERE users.ID = tickets.SellerID

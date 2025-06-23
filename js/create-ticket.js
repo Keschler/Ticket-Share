@@ -76,7 +76,7 @@
                 today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
                 
                 if (eventDateObj < today) {
-                    alert('Event date cannot be in the past. Please select a future date.');
+                    showMessage('Event date cannot be in the past. Please select a future date.');
                     return;
                 }
                 
@@ -85,14 +85,14 @@
                 const now = new Date();
                 
                 if (expirationDateObj <= now) {
-                    alert('Expiration date must be in the future.');
+                    showMessage('Expiration date must be in the future.');
                     return;
                 }
                 
                 // Validate that expiration is before or on the event date
                 const eventWithTime = new Date(eventDate + 'T' + eventTime);
                 if (expirationDateObj > eventWithTime) {
-                    alert('Expiration date cannot be after the event date and time.');
+                    showMessage('Expiration date cannot be after the event date and time.');
                     return;
                 }
 
@@ -123,16 +123,18 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        alert('Ticket created successfully!');
+                        showMessage('Ticket created successfully!', 'success');
                         e.target.reset();
-                        // Redirect to index page
-                        window.location.href = 'index.html';
+                        // Redirect to index page after a short delay to show the success message
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
                     } else {
-                        alert('Error creating ticket: ' + result.message);
+                        showMessage('Error creating ticket: ' + result.message);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('An error occurred while creating the ticket.');
+                    showMessage('An error occurred while creating the ticket.');
                 }
             });
         });

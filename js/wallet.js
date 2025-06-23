@@ -47,8 +47,8 @@
                     console.error('Error details:', data.error_details);
                     
                     let errorMessage = 'Failed to load balance: ' + data.message;
-                    if (data.error_details) {
-                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    if (data.error_details && data.error_details.type) {
+                        errorMessage += ` (${data.error_details.type})`;
                     }
                     showMessage(errorMessage, 'error');
                 }
@@ -108,8 +108,8 @@
                     console.error('Error details:', data.error_details);
                     
                     let errorMessage = data.message;
-                    if (data.error_details) {
-                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    if (data.error_details && data.error_details.type) {
+                        errorMessage += ` (${data.error_details.type})`;
                     }
                     showMessage(errorMessage, 'error');
                 }
@@ -174,8 +174,8 @@
                     console.error('Error details:', data.error_details);
                     
                     let errorMessage = data.message;
-                    if (data.error_details) {
-                        errorMessage += ` (${data.error_details.type || 'unknown error'})`;
+                    if (data.error_details && data.error_details.type) {
+                        errorMessage += ` (${data.error_details.type})`;
                     }
                     showMessage(errorMessage, 'error');
                 }
